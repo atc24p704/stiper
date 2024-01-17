@@ -35,6 +35,11 @@
 #ifndef SA_SIGINFO
 #define SA_SIGINFO	0x00000004
 #endif
+#ifdef CONFIG_STIPER
+#ifndef SA_SIGSM
+#define SA_SIGSM	0x00000008	/* signal to request/return share memory */
+#endif
+#endif /* CONFIG_STIPER */
 /* 0x00000008 used on alpha, mips, parisc */
 /* 0x00000010 used on alpha, parisc */
 /* 0x00000020 used on alpha, parisc, sparc */

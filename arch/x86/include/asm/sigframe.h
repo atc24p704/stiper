@@ -56,10 +56,20 @@ struct rt_sigframe_ia32 {
 
 #ifdef CONFIG_X86_64
 
+#ifdef CONFIG_STIPER
+struct rt_smframe {
+	char *ptr;
+	u32 size;
+};
+#endif
+
 struct rt_sigframe {
 	char __user *pretcode;
 	struct ucontext uc;
 	struct siginfo info;
+#ifdef CONFIG_STIPER
+	struct rt_smframe sm_info;
+#endif
 	/* fp state follows here */
 };
 

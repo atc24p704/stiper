@@ -84,7 +84,6 @@ get_sigframe(struct ksignal *ksig, struct pt_regs *regs, size_t frame_size,
 	unsigned long math_size = 0;
 	unsigned long sp = regs->sp;
 	unsigned long buf_fx = 0;
-
 	/* redzone */
 	if (!ia32_frame)
 		sp -= 128;
@@ -157,6 +156,10 @@ get_sigframe(struct ksignal *ksig, struct pt_regs *regs, size_t frame_size,
 # define MAX_FRAME_SIGINFO_UCTXT_SIZE	sizeof(struct rt_sigframe)
 #endif
 
+#ifdef CONFIG_STIPER
+# define MAX_FRAME_SMINFO_UCTXT_SIZE	sizeof(struct rt_smframe)
+#endif /* CONFIG_STIPER */	
+
 /*
  * The FP state frame contains an XSAVE buffer which must be 64-byte aligned.
  * If a signal frame starts at an unaligned address, extra space is required.
@@ -194,6 +197,11 @@ static int __init init_sigframe_size(void)
 
 	/* Userspace expects an aligned size. */
 	max_frame_size = round_up(max_frame_size, FRAME_ALIGNMENT);
+
+#ifdef CONFIG_STIPER
+	max_frame_size += MAX_FRAME_SMINFO_UCTXT_SIZE;
+	max_frame_size = round_up(max_frame_size, FRAME_ALIGNMENT);
+#endif
 
 	pr_info("max sigframe size: %lu\n", max_frame_size);
 	return 0;

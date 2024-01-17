@@ -188,6 +188,12 @@ int x64_setup_rt_frame(struct ksignal *ksig, struct pt_regs *regs)
 	unsafe_put_user(ksig->ka.sa.sa_restorer, &frame->pretcode, Efault);
 	unsafe_put_sigcontext(&frame->uc.uc_mcontext, fp, regs, set, Efault);
 	unsafe_put_sigmask(set, frame, Efault);
+
+#ifdef CONFIG_STIPER
+	unsafe_put_user(ksig->info.smreq_ptr, &frame->sm_info.ptr, Efault);
+	unsafe_put_user(ksig->info.smreq_size, &frame->sm_info.size, Efault);
+#endif /* CONFIG_STIPER */
+
 	user_access_end();
 
 	if (ksig->ka.sa.sa_flags & SA_SIGINFO) {
@@ -208,6 +214,9 @@ int x64_setup_rt_frame(struct ksignal *ksig, struct pt_regs *regs)
 	regs->si = (unsigned long)&frame->info;
 	regs->dx = (unsigned long)&frame->uc;
 	regs->ip = (unsigned long) ksig->ka.sa.sa_handler;
+#ifdef CONFIG_STIPER
+	regs->cx = (unsigned long)&frame->sm_info;
+#endif /* CONFIG_STIPER */
 
 	regs->sp = (unsigned long)frame;
 
@@ -449,6 +458,13 @@ static_assert(offsetof(siginfo_t, si_code)  == 8);
 		      offsetof(siginfo_t, _sifields.name))
 #define CHECK_SI_SIZE(name, size)					\
 	static_assert(sizeof_field(siginfo_t, _sifields.name) == size)
+
+#ifdef CONFIG_STIPER
+CHECK_SI_OFFSET(_smreq);
+CHECK_SI_SIZE  (_smreq, 6*sizeof(int));
+static_assert(offsetof(siginfo_t, smreq_ptr)  == 0x18);
+static_assert(offsetof(siginfo_t, smreq_size) == 0x20);
+#endif /* CONFIG_STIPER */
 
 CHECK_SI_OFFSET(_kill);
 CHECK_SI_SIZE  (_kill, 2*sizeof(int));

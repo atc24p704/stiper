@@ -35,6 +35,15 @@ typedef union sigval {
  * would increase the alignment of siginfo_t will break the ABI.
  */
 union __sifields {
+#ifdef CONFIG_STIPER
+	/* smreq() */
+	struct {
+		__kernel_pid_t _pid;	/* sender's pid */
+		__kernel_uid32_t _uid;	/* sender's uid */
+		char *ptr;
+		unsigned long size;
+	} _smreq;	
+#endif /* CONFIG_STIPER */
 	/* kill() */
 	struct {
 		__kernel_pid_t _pid;	/* sender's pid */
@@ -143,6 +152,10 @@ typedef struct siginfo {
  */
 #define si_pid		_sifields._kill._pid
 #define si_uid		_sifields._kill._uid
+#ifdef CONFIG_STIPER
+#define smreq_ptr	_sifields._smreq.ptr
+#define smreq_size	_sifields._smreq.size
+#endif
 #define si_tid		_sifields._timer._tid
 #define si_overrun	_sifields._timer._overrun
 #define si_sys_private  _sifields._timer._sys_private
